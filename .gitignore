@@ -1,0 +1,12 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/out/
+/.vs
+/libs
+*.spv
+*.mtl
+*.obj
+!resources/textures/200px-Debugempty.png
+.idea
