@@ -684,7 +684,7 @@ void DynamicRenderingApp::InitVulkan()
 			ImageBuilder builder{};
 			builder
 				.SetAspect(VK_IMAGE_ASPECT_COLOR_BIT)
-				.SetFormat(VK_FORMAT_R16G16B16A16_SFLOAT)
+				.SetFormat(VK_FORMAT_R16G16B16A16_UNORM)
 				.SetDimensions(m_SwapChainPtr->GetExtentPtr()->width, m_SwapChainPtr->GetExtentPtr()->height)
 				.Build(m_MaterialPropsTexturePtr, m_DevicePtr.get(), m_CommandPoolPtr.get(), VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 			m_DevicePtr->SetObjectName(VK_OBJECT_TYPE_IMAGE_VIEW, (uint64_t)*m_MaterialPropsTexturePtr->GetFirstViewPtr(), "Material properties image view");
@@ -724,17 +724,17 @@ void DynamicRenderingApp::InitVulkan()
 			[&]()
 			{
 				m_AlbedoTexturePtr->Destroy(*m_DevicePtr->GetDevicePtr());
-				m_MaterialPropsTexturePtr->Destroy(*m_DevicePtr->GetDevicePtr());
+				m_MaterialPropsTexturePtr->Destroy(*m_DevicePtr->GetDevicePtr()); 
 				m_HDRRenderTargetPtr->Destroy(*m_DevicePtr->GetDevicePtr());
 			});
 	}
 
-	CreateTextureSampler();
+	CreateTextureSampler(); 
 
 	// render to cube map
 	{
 		auto vertexShaderCode{ HELP::ReadFile("shaders\\cubemap_vert.spv")};
-		auto fragShaderCode{ HELP::ReadFile("shaders\\environment.spv") };
+		auto fragShaderCode{ HELP::ReadFile("shaders\\environment_frag.spv") };
 		ShaderStage vertShaderStage{ m_DevicePtr.get(), vertexShaderCode, VK_SHADER_STAGE_VERTEX_BIT };
 		m_DevicePtr->SetObjectName(VK_OBJECT_TYPE_SHADER_MODULE, (uint64_t)vertShaderStage.GetModule(), "vertex shader module");
 		ShaderStage fragShaderStage{ m_DevicePtr.get(), fragShaderCode, VK_SHADER_STAGE_FRAGMENT_BIT };
@@ -800,7 +800,7 @@ void DynamicRenderingApp::InitVulkan()
 	// render to irradiance map
 	{
 		auto vertexShaderCode{ HELP::ReadFile("shaders\\cubemap_vert.spv") };
-		auto fragShaderCode{ HELP::ReadFile("shaders\\irradiance.spv") };
+		auto fragShaderCode{ HELP::ReadFile("shaders\\diffuse_irradiance_frag.spv") };
 		ShaderStage vertShaderStage{ m_DevicePtr.get(), vertexShaderCode, VK_SHADER_STAGE_VERTEX_BIT };
 		m_DevicePtr->SetObjectName(VK_OBJECT_TYPE_SHADER_MODULE, (uint64_t)vertShaderStage.GetModule(), "vertex shader module");
 		ShaderStage fragShaderStage{ m_DevicePtr.get(), fragShaderCode, VK_SHADER_STAGE_FRAGMENT_BIT };
@@ -865,12 +865,12 @@ void DynamicRenderingApp::InitVulkan()
 
 	// create pipelines
 	{
-		auto prepassShaderCode{ HELP::ReadFile("shaders\\prepass.spv") };
-		auto vertShaderCode{ HELP::ReadFile("shaders\\vert.spv") };
-		auto fragShaderCode{ HELP::ReadFile("shaders\\frag.spv") };
-		auto quadShaderCode{ HELP::ReadFile("shaders\\quad.spv") };
-		auto gbufferGenShaderCode{ HELP::ReadFile("shaders\\gbuffergen.spv") };
-		auto gbufferVertShaderCode{ HELP::ReadFile("shaders\\gbuffergen_vert.spv") };
+		auto prepassShaderCode{ HELP::ReadFile("shaders\\depth_prepass_frag.spv") };
+		auto vertShaderCode{ HELP::ReadFile("shaders\\basic_triangle_shader_vert.spv") };
+		auto fragShaderCode{ HELP::ReadFile("shaders\\basic_fragment_shader_frag.spv") };
+		auto quadShaderCode{ HELP::ReadFile("shaders\\quad_shader_vert.spv") };
+		auto gbufferGenShaderCode{ HELP::ReadFile("shaders\\gbuffer_generation_frag.spv") };
+		auto gbufferVertShaderCode{ HELP::ReadFile("shaders\\gbuffer_generation_vert.spv") };
 		auto lightingShaderCode{ HELP::ReadFile("shaders\\lighting_frag.spv") };
 		auto blitShaderCode{ HELP::ReadFile("shaders\\blit_frag.spv") };
 

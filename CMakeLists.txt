@@ -45,12 +45,53 @@ add_executable(GP_Vulkan "src/main.cpp"  "src/Instance.cpp" "inc/ColorDefines.h"
 target_include_directories(${PROJECT_NAME} PRIVATE "inc/" "libs/assimp-src/include/" "libs/assimp-src/contrib/stb/")
 
 find_package(Vulkan REQUIRED)
+
+find_program(GLSLANG glslang)
+
+if (!GLSLANG)
+	message(FATAL_ERROR "Shader compiler not found")
+endif ()
 target_link_libraries(${PROJECT_NAME} Vulkan::Vulkan glfw glm::glm-header-only assimp::assimp)
 
 make_directory(${CMAKE_BINARY_DIR}/shaders)
 add_compile_definitions(GLM_FORCE_DEPTH_ZERO_TO_ONE)
 add_compile_definitions(GLM_FORCE_RADIANS)
 add_compile_definitions(GLM_ENABLE_EXPERIMENTAL)
-add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-	COMMAND ${PROJECT_SOURCE_DIR}/compile_shader.bat ${PROJECT_SOURCE_DIR} ${PROJECT_BINARY_DIR}
-	COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/resources ${PROJECT_BINARY_DIR}/resources)
+
+set(SHADER_SOURCES
+    "basic_fragment_shader.frag"
+    "basic_triangle_shader.vert"
+	"blit.frag"
+    "cubemap.vert"
+    "depth_prepass.frag"
+	"diffuse_irradiance.frag"
+"environment.frag"
+"gbuffer_generation.frag"
+"gbuffer_generation.vert"
+"lighting.frag"
+"lighting.vert"
+"quad_shader.vert"
+"shadow_prepass.frag"
+"shadow_prepass.vert")
+
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/shaders)
+macro(Shader_Compile name)
+	get_filename_component(SHADER_FILENAME_WE ${name} NAME_WE)
+	get_filename_component(SHADER_EXT ${name} EXT)
+	string(SUBSTRING "${SHADER_EXT}" 1 -1 SHADER_EXT) # Remove the leading dot
+	set(SHADER_SOURCE ${PROJECT_SOURCE_DIR}/shaders/${name})
+	set(SHADER_SPIRV_PATH ${CMAKE_BINARY_DIR}/shaders/${SHADER_FILENAME_WE}_${SHADER_EXT}.spv)
+
+	add_custom_command(OUTPUT ${SHADER_SPIRV_PATH}
+	                   COMMAND glslang -V --target-env vulkan1.3 ${SHADER_SOURCE} -o ${SHADER_SPIRV_PATH}
+	                   DEPENDS ${SHADER_SOURCE}
+	                   COMMENT "Compiled ${SHADER_SPIRV_PATH}")
+	list(APPEND COMPILED_SHADERS ${SHADER_SPIRV_PATH})
+endmacro()
+
+foreach (shader IN LISTS SHADER_SOURCES)
+	Shader_Compile(${shader})
+endforeach ()
+
+add_custom_target(CompileShaders DEPENDS ${COMPILED_SHADERS})
+add_dependencies(${PROJECT_NAME} CompileShaders)
