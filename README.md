@@ -1,6 +1,8 @@
 Project by Hlebov Oleksandr,
 DAE student, group 2GD11E
 
+This project is being superseded by [new and improved vulkan renderer](https://github.com/OleksandrHlebov/VulkanRenderer)
+
 [github repo](https://github.com/Howest-DAE-GD/graphics-programming-2-vulkan-project-OleksandrHlebov/tree/main)
 
 Camera controls for dynamic rendering app:
